@@ -4,3 +4,4 @@
 /redis-data/
 /settings.yml
 *.ftl
+/poetry.lock
