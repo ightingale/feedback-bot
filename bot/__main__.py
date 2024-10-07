@@ -36,7 +36,8 @@ async def main():
         forum_chat_id=config.bot.forum_supergroup_id,
         topics_to_ignore=config.bot.ignored_topics_ids,
         storage=storage,
-        l10n=l10n
+        l10n=l10n,
+        config=config
     )
     if not config.bot.albums_preserve_enabled:
         dp.fsm.events_isolation = SimpleEventIsolation()
