@@ -19,7 +19,6 @@ class RedisConfig(BaseSettings, env_prefix="REDIS_"):
     host: str
     port: int
     db: int
-    data: str
 
 
 class PostgresConfig(BaseSettings, env_prefix="POSTGRES_"):
@@ -28,7 +27,6 @@ class PostgresConfig(BaseSettings, env_prefix="POSTGRES_"):
     password: SecretStr
     port: int
     user: str
-    data: str
 
     def dsn(self) -> URL:
         return URL.create(
