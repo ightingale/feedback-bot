@@ -17,7 +17,7 @@ logger: structlog.BoundLogger = structlog.get_logger()
 
 async def main():
     config: AppConfig = create_app_config()
-    engine = create_async_engine(url=str(config.postgres.dsn), echo=True)
+    engine = create_async_engine(url=config.postgres.dsn(), echo=True)
     sessionmaker = async_sessionmaker(engine, expire_on_commit=False)
 
     if config.bot.fsm_mode == FSMModeEnum.MEMORY:
