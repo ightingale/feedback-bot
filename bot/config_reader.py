@@ -42,7 +42,7 @@ class PostgresConfig(BaseSettings, env_prefix="POSTGRES_"):
 class BotConfig(BaseSettings, env_prefix="BOT_"):
     token: SecretStr
     forum_supergroup_id: int
-    ignored_topics_ids: set[int] = Field(default_factory=set, default=set())
+    ignored_topics_ids: set[int] = Field(default=set())
     fsm_mode: FSMModeEnum
     language: str
     albums_preserve_enabled: bool = False
