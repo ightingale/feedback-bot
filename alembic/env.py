@@ -7,7 +7,7 @@ from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
-from bot.config_reader import Settings, parse_settings
+from bot.config_reader import AppConfig, create_app_config
 from bot.db import Base
 
 # this is the Alembic Config object, which provides
@@ -23,7 +23,7 @@ if config.config_file_name is not None:
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-settings: Settings = parse_settings()
+settings: AppConfig = create_app_config()
 target_metadata = Base.metadata
 config.set_main_option(
     'sqlalchemy.url',
