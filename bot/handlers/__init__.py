@@ -2,7 +2,7 @@ from aiogram import Dispatcher, F, Router
 from aiogram.enums.chat_type import ChatType
 from sqlalchemy.ext.asyncio.session import async_sessionmaker as AsyncSessionmaker
 
-from bot.config_reader import BotSettings
+from bot.config_reader import BotConfig
 from bot.middlewares import (
     AlbumsMiddleware, BansMiddleware, DbSessionMiddleware,
     TopicsManagementMiddleware, UserTopicContextMiddleware,
@@ -15,7 +15,7 @@ from .from_users import actions_in_pm, free_talk_in_pm
 
 def attach_routers_and_middlewares(
         dispatcher: Dispatcher,
-        bot_config: BotSettings,
+        bot_config: BotConfig,
         sessionmaker: AsyncSessionmaker
 ) -> None:
     # We always want to have UserTopicContext object and database session object
