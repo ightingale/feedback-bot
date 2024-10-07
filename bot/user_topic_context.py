@@ -214,7 +214,6 @@ class UserTopicContext:
                 "id": user.id,
                 "username": username,
                 "language_code": language_code,
-                "has_premium": has_premium
             }
         )
         return text

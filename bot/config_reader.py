@@ -48,6 +48,7 @@ class BotConfig(BaseSettings, env_prefix="BOT_"):
     ignored_topics_ids: list[int]
     fsm_mode: FSMModeEnum
     language: str
+    info: str
     albums_preserve_enabled: bool = False
     albums_wait_time_seconds: int = 3.0
 
