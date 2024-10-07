@@ -24,7 +24,7 @@ async def main():
         storage = MemoryStorage()
     else:
         storage = RedisStorage.from_url(
-            url=str(config.redis.dsn),
+            url=str(config.redis.dsn()),
             connection_kwargs={"decode_responses": True}
         )
 

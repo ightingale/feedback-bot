@@ -20,6 +20,9 @@ class RedisConfig(BaseSettings, env_prefix="REDIS_"):
     port: int
     db: int
 
+    def dsn(self) -> str:
+        return f"redis://{self.host}:{self.port}/{self.db}"
+
 
 class PostgresConfig(BaseSettings, env_prefix="POSTGRES_"):
     host: str
