@@ -19,8 +19,7 @@ new-topic-intro =
     ├── Наличие бана: { $ban_status }
     ├── Telegram ID: <code>{ NUMBER($id, useGrouping: 0) }</code>
     ├── Юзернейм: { $username }
-    ├── Язык: { $language_code }
-    └── Telegram Premium: { $has_premium }
+    └── Язык: { $language_code }
 
 error-cannot-find-user =
     Ошибка: не удалось найти пользователя для этого топика. Сообщение не доставлено.

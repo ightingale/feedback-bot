@@ -1,15 +1,13 @@
 from enum import Enum
-from os import getenv
-from pathlib import Path
-from typing import Optional
 
-from pydantic import SecretStr, BaseModel, RedisDsn, model_validator, PostgresDsn, Field
-from yaml import load as yaml_load
+from pydantic import BaseModel, Field, SecretStr
+from pydantic_settings import BaseSettings as _BaseSettings
+from pydantic_settings import SettingsConfigDict
+from sqlalchemy import URL
 
-try:
-    from yaml import CSafeLoader as Loader
-except ImportError:
-    from yaml import Loader
+
+class BaseSettings(_BaseSettings):
+    model_config = SettingsConfigDict(extra="ignore", env_file=".env", env_file_encoding="utf-8")
 
 
 class FSMModeEnum(str, Enum):
@@ -17,15 +15,33 @@ class FSMModeEnum(str, Enum):
     REDIS = "redis"
 
 
-class RedisSettings(BaseModel):
-    dsn: RedisDsn
+class RedisConfig(BaseSettings, env_prefix="REDIS_"):
+    host: str
+    port: int
+    db: int
+    data: str
 
 
-class PostgresSettings(BaseModel):
-    dsn: PostgresDsn
+class PostgresConfig(BaseSettings, env_prefix="POSTGRES_"):
+    host: str
+    db: str
+    password: SecretStr
+    port: int
+    user: str
+    data: str
+
+    def dsn(self) -> URL:
+        return URL.create(
+            drivername="postgresql+psycopg",
+            username=self.user,
+            password=self.password.get_secret_value(),
+            host=self.host,
+            port=self.port,
+            database=self.db,
+        )
 
 
-class BotSettings(BaseModel):
+class BotConfig(BaseSettings, env_prefix="BOT_"):
     token: SecretStr
     forum_supergroup_id: int
     ignored_topics_ids: set[int] = Field(default_factory=set)
@@ -35,31 +51,15 @@ class BotSettings(BaseModel):
     albums_wait_time_seconds: int = 3.0
 
 
-class Settings(BaseModel):
-    redis: Optional[RedisSettings] = None
-    postgres: PostgresSettings
-    bot: BotSettings  # Must be the last one, since it checks for fsm_mode
-
-    @model_validator(mode="after")
-    def validate_fsm_mode(self) -> 'Settings':
-        if self.bot.fsm_mode == FSMModeEnum.REDIS:
-            if self.redis is None or self.redis.dsn is None:
-                raise ValueError('"Redis" FSM mode selected, but no Redis DSN provided')
-        return self
+class AppConfig(BaseModel):
+    bot: BotConfig
+    postgres: PostgresConfig
+    redis: RedisConfig
 
 
-def parse_settings(local_file_name: str = "settings.yml") -> Settings:
-    file_path = getenv("FEEDBACK_BOT_CONFIG_PATH")
-    if file_path is not None:
-        # Check if path exists
-        if not Path(file_path).is_file():
-            raise ValueError("Path %s is not a file or doesn't exist", file_path)
-    else:
-        parent_dir = Path(__file__).parent.parent
-        settings_file = Path(Path.joinpath(parent_dir, local_file_name))
-        if not Path(settings_file).is_file():
-            raise ValueError("Path %s is not a file or doesn't exist", settings_file)
-        file_path = settings_file.absolute()
-    with open(file_path, "rt") as file:
-        config_data = yaml_load(file, Loader)
-    return Settings.model_validate(config_data)
+def create_app_config() -> AppConfig:
+    return AppConfig(
+        bot=BotConfig(),
+        postgres=PostgresConfig(),
+        redis=RedisConfig(),
+    )

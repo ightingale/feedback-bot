@@ -6,7 +6,7 @@ from aiogram.fsm.storage.memory import MemoryStorage, SimpleEventIsolation
 from aiogram.fsm.storage.redis import RedisStorage
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 
-from bot.config_reader import parse_settings, FSMModeEnum, Settings
+from bot.config_reader import FSMModeEnum, AppConfig, create_app_config
 from bot.fluent_loader import get_fluent_localization
 from bot.handlers import attach_routers_and_middlewares
 
@@ -16,7 +16,7 @@ logger: structlog.BoundLogger = structlog.get_logger()
 
 
 async def main():
-    config: Settings = parse_settings()
+    config: AppConfig = create_app_config()
     engine = create_async_engine(url=str(config.postgres.dsn), echo=True)
     sessionmaker = async_sessionmaker(engine, expire_on_commit=False)
 
@@ -27,9 +27,6 @@ async def main():
             url=str(config.redis.dsn),
             connection_kwargs={"decode_responses": True}
         )
-
-    # bans_cache = LRUCache(maxsize=5000)
-    # shadowbans_cache = LRUCache(maxsize=5000)
 
     # Loading localization for bot
     l10n = get_fluent_localization(config.bot.language)
