@@ -5,3 +5,4 @@
 /settings.yml
 *.ftl
 /poetry.lock
+logs/

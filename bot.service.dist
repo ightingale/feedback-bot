@@ -1,0 +1,17 @@
+[Unit]
+Description=Feedback Bot
+After=network.target redis.service
+
+[Service]
+User=user
+Type=simple
+WorkingDirectory=/home/dev/bot
+ExecStart=poetry run python -O -m bot
+KillMode=process
+Restart=always
+RestartSec=10
+StandardOutput=append:/home/dev/bot/logs/bot_output.log
+StandardError=append:/home/dev/bot/logs/bot.log
+
+[Install]
+WantedBy=multi-user.target
