@@ -41,4 +41,12 @@ class UserTopicContextMiddleware(BaseMiddleware):
             )
             data.update(context=context)
 
+            try:
+                msg_thread_id = event.evenet.message.reply_to_message.message_thread_id
+                await logger.adebug(
+                    event=f"Msg Thread ID: {msg_thread_id}"
+                )
+            except AttributeError:
+                pass
+
         return await handler(event, data)
