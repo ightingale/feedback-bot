@@ -6,3 +6,4 @@
 *.ftl
 /poetry.lock
 logs/
+/.env

@@ -1,6 +1,6 @@
 from enum import Enum
 
-from pydantic import BaseModel, Field, SecretStr
+from pydantic import BaseModel, SecretStr
 from pydantic_settings import BaseSettings as _BaseSettings
 from pydantic_settings import SettingsConfigDict
 from sqlalchemy import URL
@@ -17,11 +17,12 @@ class FSMModeEnum(str, Enum):
 
 class RedisConfig(BaseSettings, env_prefix="REDIS_"):
     host: str
+    password: SecretStr
     port: int
     db: int
 
     def dsn(self) -> str:
-        return f"redis://{self.host}:{self.port}/{self.db}"
+        return f"redis://:{self.password.get_secret_value()}@{self.host}:{self.port}/{self.db}"
 
 
 class PostgresConfig(BaseSettings, env_prefix="POSTGRES_"):

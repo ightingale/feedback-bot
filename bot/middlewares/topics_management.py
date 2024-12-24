@@ -2,7 +2,7 @@ from typing import Any, Awaitable, Callable, Dict
 
 import structlog
 from aiogram import BaseMiddleware, Bot
-from aiogram.enums import ContentType, ParseMode
+from aiogram.enums import ParseMode
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.types import TelegramObject, Message, ForumTopic
 from cachetools import LRUCache
@@ -21,11 +21,11 @@ class TopicsManagementMiddleware(BaseMiddleware):
         self.cache = LRUCache(maxsize=10)
 
     async def find_topic(
-            self,
-            session: AsyncSession,
-            *,
-            user_id: int = None,
-            topic_id: int = None
+        self,
+        session: AsyncSession,
+        *,
+        user_id: int = None,
+        topic_id: int = None
     ) -> Topic | None:
         """
         Search for topic using user_id or topic_id
@@ -53,15 +53,16 @@ class TopicsManagementMiddleware(BaseMiddleware):
         return entry
 
     async def create_new_topic(
-            self,
-            session: AsyncSession,
-            bot: Bot,
-            supergroup_id: int,
-            message: Message,
-            l10n: FluentLocalization
+        self,
+        session: AsyncSession,
+        bot: Bot,
+        supergroup_id: int,
+        message: Message,
+        l10n: FluentLocalization
     ) -> Topic | None:
         try:
-            new_topic: ForumTopic = await bot.create_forum_topic(supergroup_id, message.from_user.full_name[:127])
+            new_topic: ForumTopic = await bot.create_forum_topic(supergroup_id,
+                                                                 message.from_user.full_name[:127])
             first_topic_message = await bot.send_message(
                 supergroup_id,
                 message_thread_id=new_topic.message_thread_id,
@@ -72,7 +73,7 @@ class TopicsManagementMiddleware(BaseMiddleware):
             log.error(
                 event="Could not create new topic",
                 error_type=ex.__class__.__name__, message=ex.message,
-                method=ex.method.__class__.__name__, method_args=ex.method.dict()
+                method=ex.method.__class__.__name__, method_args=ex.method.model_dump()
             )
             return None
 
@@ -98,10 +99,10 @@ class TopicsManagementMiddleware(BaseMiddleware):
         return db_topic
 
     async def __call__(
-            self,
-            handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
-            event: TelegramObject,
-            data: Dict[str, Any],
+        self,
+        handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
+        event: TelegramObject,
+        data: Dict[str, Any],
     ) -> Any:
         # If someone accidentally tried to add this middleware
         # to anything but messages or edited messages, just ignore it
