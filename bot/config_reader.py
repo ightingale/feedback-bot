@@ -34,7 +34,7 @@ class PostgresConfig(BaseSettings, env_prefix="POSTGRES_"):
 
     def dsn(self) -> URL:
         return URL.create(
-            drivername="postgresql+psycopg",
+            drivername="postgresql+asyncpg",
             username=self.user,
             password=self.password.get_secret_value(),
             host=self.host,

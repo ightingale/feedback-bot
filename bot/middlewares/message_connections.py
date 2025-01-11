@@ -1,26 +1,28 @@
+import logging
 from typing import Any, Awaitable, Callable, Dict
 
-import structlog
 from aiogram import BaseMiddleware, Bot
 from aiogram.types import TelegramObject, Message
 
 from bot.user_topic_context import UserTopicContext
 
-logger: structlog.BoundLogger = structlog.get_logger()
+logger: logging.Logger = logging.getLogger(__name__)
 
 
 class MessageConnectionsMiddleware(BaseMiddleware):
     async def __call__(
-            self,
-            handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
-            event: TelegramObject,
-            data: Dict[str, Any],
+        self,
+        handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
+        event: TelegramObject,
+        data: Dict[str, Any],
     ) -> Any:
-        await logger.adebug("Called MessageConnectionsMiddleware")
+        logger.debug("Called MessageConnectionsMiddleware")
         # If someone accidentally tried to add this middleware
         # to anything but messages, just ignore it
         if not isinstance(event, Message):
-            await logger.awarn("%s used not for Message, but for %s", self.__class__.__name__, type(event))
+            logger.warning(
+                "%s used not for Message, but for %s", self.__class__.__name__, type(event)
+            )
             return await handler(event, data)
 
         event: Message
@@ -30,7 +32,6 @@ class MessageConnectionsMiddleware(BaseMiddleware):
 
         # Flag. which states, whether message coming TO forum or FROM forum
         is_incoming_message: bool = (event.chat.id != data["forum_chat_id"])
-        await logger.adebug("is_incoming_message", value=is_incoming_message)
 
         """
         If message itself is reply, the following logic is applied:
@@ -54,7 +55,6 @@ class MessageConnectionsMiddleware(BaseMiddleware):
                 chat_id=event.reply_to_message.chat.id,
                 message_id=event.reply_to_message.message_id
             )
-            await logger.adebug("Is replied message found?", result=bool(replied_message))
             if replied_message is not None:
                 if is_from_bot:
                     context.reply_to_id = replied_message.from_message_id

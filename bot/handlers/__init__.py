@@ -45,6 +45,7 @@ def attach_routers_and_middlewares(
 
     free_talk_in_pm_router = free_talk_in_pm.get_router()
     free_talk_in_pm_router.edited_message.outer_middleware(EditedMessagesMiddleware())
+    free_talk_in_pm_router.message_reaction.outer_middleware(EditedMessagesMiddleware())
     free_talk_in_pm_router.message.outer_middleware(MessageConnectionsMiddleware())
     pm_router.include_router(free_talk_in_pm_router)
 
@@ -60,6 +61,7 @@ def attach_routers_and_middlewares(
 
     free_talk_in_forum_router = free_talk_in_forum.get_router()
     free_talk_in_forum_router.edited_message.middleware(EditedMessagesMiddleware())
+    free_talk_in_forum_router.message_reaction.middleware(EditedMessagesMiddleware())
     free_talk_in_forum_router.message.middleware(MessageConnectionsMiddleware())
     forum_router.include_router(free_talk_in_forum_router)
 

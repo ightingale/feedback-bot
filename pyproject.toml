@@ -7,19 +7,18 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.11"
-aiogram = "^3.13.1"
-alembic = "^1.13.3"
-psycopg = "^3.2.3"
-redis = "^5.1.1"
+aiogram = "^3.17.0"
+alembic = "^1.14.0"
+redis = "^5.2.1"
 psycopg-binary = "^3.2.3"
-structlog = "^24.4.0"
-async-timeout = "^4.0.3"
 babel = "^2.16.0"
 cachetools = "^5.5.0"
-charset-normalizer = "^3.3.2"
-fluent-runtime = "^0.4.0"
+charset-normalizer = "^3.4.1"
 idna = "^3.10"
-pydantic-settings = "^2.5.2"
+pydantic-settings = "^2.7.1"
+aiohttp = "^3.11.11"
+asyncpg = "^0.30.0"
+fluent-runtime = "^0.4.0"
 
 
 [build-system]

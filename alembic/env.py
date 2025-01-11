@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 
 from bot.config_reader import PostgresConfig
 from bot.db import Base
+from bot.utils.loggers import setup_logger
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -15,6 +16,7 @@ config: Config = context.config
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
+setup_logger()
 
 # add your model's MetaData object here
 # for 'autogenerate' support

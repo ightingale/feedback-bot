@@ -1,6 +1,6 @@
+import logging
 from typing import Any, Awaitable, Callable, Dict
 
-import structlog
 from aiogram import BaseMiddleware, Bot
 from aiogram.enums import ParseMode
 from aiogram.exceptions import TelegramBadRequest
@@ -13,7 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from bot.db import Topic
 from bot.user_topic_context import UserTopicContext
 
-log: structlog.BoundLogger = structlog.get_logger()
+logger: logging.Logger = logging.getLogger(__name__)
 
 
 class TopicsManagementMiddleware(BaseMiddleware):
@@ -37,14 +37,14 @@ class TopicsManagementMiddleware(BaseMiddleware):
         """
         if user_id is not None:
             if user_id in self.cache:
-                log.debug("User %s found in local cache", user_id)
+                logger.debug("User %s found in local cache", user_id)
                 return self.cache[user_id]
             statement = select(Topic).where(Topic.user_id == user_id)
         else:
             value: Topic
             for key, value in self.cache.items():
                 if value.topic_id == topic_id:
-                    log.debug("Topic %s found in local cache", topic_id)
+                    logger.debug("Topic %s found in local cache", topic_id)
                     return value
             statement = select(Topic).where(Topic.topic_id == topic_id)
         entry = await session.scalar(statement)
@@ -70,10 +70,13 @@ class TopicsManagementMiddleware(BaseMiddleware):
                 parse_mode=ParseMode.HTML
             )
         except TelegramBadRequest as ex:
-            log.error(
-                event="Could not create new topic",
-                error_type=ex.__class__.__name__, message=ex.message,
-                method=ex.method.__class__.__name__, method_args=ex.method.model_dump()
+            logger.error(
+                (
+                    "Could not create new topic, error_type: %s, "
+                    "message: %s, method: %s, method_args: %s"
+                ),
+                ex.__class__.__name__, ex.message,
+                ex.method.__class__.__name__, ex.method.model_dump()
             )
             return None
 
@@ -86,15 +89,18 @@ class TopicsManagementMiddleware(BaseMiddleware):
         try:
             await session.commit()
         except Exception as ex:
-            log.error(
-                event="Could not save new topic to DB",
-                error_type=ex.__class__.__name__, message=str(ex),
-                topic_id=new_topic.message_thread_id,
-                user_id=message.from_user.id
+            logger.error(
+                (
+                    "Could not save new topic to DB, error_type: %s, "
+                    "message: %s, topic_id: %s, user_id: %s"
+                ),
+                ex.__class__.__name__, str(ex),
+                new_topic.message_thread_id,
+                message.from_user.id
             )
             return None
 
-        log.debug("Created new topic with id %s", new_topic.message_thread_id)
+        logger.debug("Created new topic with id %s", new_topic.message_thread_id)
         self.cache[message.from_user.id] = db_topic
         return db_topic
 
@@ -107,7 +113,9 @@ class TopicsManagementMiddleware(BaseMiddleware):
         # If someone accidentally tried to add this middleware
         # to anything but messages or edited messages, just ignore it
         if not isinstance(event, Message):
-            log.warn("%s used not for Message, but for %s", self.__class__.__name__, type(event))
+            logger.warning(
+                "%s used not for Message, but for %s", self.__class__.__name__, type(event)
+            )
             return await handler(event, data)
 
         event: Message

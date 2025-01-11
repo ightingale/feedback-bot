@@ -1,4 +1,5 @@
 import asyncio
+import logging
 from typing import Any, Callable, Dict, Awaitable
 
 from aiogram import BaseMiddleware
@@ -6,6 +7,8 @@ from aiogram.types import Message, TelegramObject
 from cachetools import TTLCache
 
 from bot.user_topic_context import UserTopicContext
+
+logger: logging.Logger = logging.getLogger(__name__)
 
 
 class AlbumsMiddleware(BaseMiddleware):
@@ -19,13 +22,15 @@ class AlbumsMiddleware(BaseMiddleware):
         self.lock = asyncio.Lock()
 
     async def __call__(
-            self,
-            handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
-            event: TelegramObject,
-            data: Dict[str, Any],
+        self,
+        handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
+        event: TelegramObject,
+        data: Dict[str, Any],
     ) -> Any:
         if not isinstance(event, Message):
-            print("%s used not for Message, but for %s", self.__class__.__name__, type(event))
+            logger.warning(
+                "%s used not for Message, but for %s", self.__class__.__name__, type(event)
+            )
             return await handler(event, data)
 
         event: Message

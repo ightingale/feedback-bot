@@ -1,6 +1,6 @@
 import asyncio
+import logging
 
-import structlog
 from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage, SimpleEventIsolation
 from aiogram.fsm.storage.redis import RedisStorage
@@ -9,15 +9,14 @@ from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 from bot.config_reader import FSMModeEnum, AppConfig, create_app_config
 from bot.fluent_loader import get_fluent_localization
 from bot.handlers import attach_routers_and_middlewares
+from bot.utils.loggers import setup_logger
 
-# from cachetools import LRUCache
-
-logger: structlog.BoundLogger = structlog.get_logger()
+logger: logging.Logger = logging.getLogger(__name__)
 
 
 async def main():
     config: AppConfig = create_app_config()
-    engine = create_async_engine(url=config.postgres.dsn(), echo=True)
+    engine = create_async_engine(url=config.postgres.dsn(), echo=False)
     sessionmaker = async_sessionmaker(engine, expire_on_commit=False)
 
     if config.bot.fsm_mode == FSMModeEnum.MEMORY:
@@ -48,9 +47,10 @@ async def main():
         sessionmaker=sessionmaker
     )
 
-    await logger.ainfo("Starting Bot")
+    logger.info("Starting Bot")
     await bot.delete_webhook()
     await dp.start_polling(bot, allowed_updates=dp.resolve_used_update_types())
 
 
+setup_logger()
 asyncio.run(main())

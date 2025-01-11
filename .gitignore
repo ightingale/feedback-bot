@@ -7,3 +7,5 @@
 /poetry.lock
 logs/
 /.env
+/.env.docker
+/.env.local

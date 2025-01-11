@@ -1,12 +1,12 @@
+import logging
 from typing import Callable, Awaitable, Dict, Any
 
-import structlog
 from aiogram import BaseMiddleware
 from aiogram.types import TelegramObject, Message
 
 from bot.user_topic_context import UserTopicContext
 
-logger: structlog.BoundLogger = structlog.get_logger()
+logger: logging.Logger = logging.getLogger(__name__)
 
 
 class BansMiddleware(BaseMiddleware):
@@ -16,11 +16,13 @@ class BansMiddleware(BaseMiddleware):
             event: TelegramObject,
             data: Dict[str, Any],
     ) -> Any:
-        await logger.adebug("Called BansMiddleware")
+        logger.debug("Called BansMiddleware")
         # If someone accidentally tried to add this middleware
         # to anything but messages, just ignore it
         if not isinstance(event, Message):
-            await logger.awarn("%s used not for Message, but for %s", self.__class__.__name__, type(event))
+            logger.warning(
+                "%s used not for Message, but for %s", self.__class__.__name__, type(event)
+            )
             return await handler(event, data)
 
         context: UserTopicContext = data["context"]
@@ -50,9 +52,7 @@ class BansMiddleware(BaseMiddleware):
 
         # If for some reason user is neither banned nor shadowbanned,
         # just log this issue
-        await logger.awarn(
-            event="User is marked as banned, but both is_banned and is_shadowbanned are False",
-            user_id=event.from_user.id
+        logger.warning(
+            "User %s is marked as banned, but both is_banned and is_shadowbanned are False",
+            event.from_user.id
         )
-
-

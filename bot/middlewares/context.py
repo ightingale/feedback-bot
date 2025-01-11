@@ -1,27 +1,28 @@
+import logging
 from typing import Any, Awaitable, Callable, Dict
 
-import structlog
 from aiogram import BaseMiddleware
-from aiogram.types import TelegramObject, Message
 from aiogram.enums.chat_type import ChatType
+from aiogram.types import TelegramObject, Message, MessageReactionUpdated
 
 from bot.user_topic_context import UserTopicContext, MessageDirection
 
-logger: structlog.BoundLogger = structlog.get_logger()
+logger: logging.Logger = logging.getLogger(__name__)
 
 
 class UserTopicContextMiddleware(BaseMiddleware):
     async def __call__(
-            self,
-            handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
-            event: TelegramObject,
-            data: Dict[str, Any],
+        self,
+        handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
+        event: TelegramObject,
+        data: Dict[str, Any],
     ) -> Any:
-
-        if isinstance(event.event, Message):
+        logger.debug("Called UserTopicContextMiddleware. Type of event: %s", type(event.event))
+        if isinstance(event.event, (Message, MessageReactionUpdated)):
             # Ignore "service messages" and other irrelevant content types
-            if UserTopicContext.is_service_message(event.event):
-                return
+            if not isinstance(event.event, MessageReactionUpdated):
+                if UserTopicContext.is_service_message(event.event):
+                    return
 
             context = UserTopicContext(data.get("event_from_user"))
 
@@ -30,22 +31,15 @@ class UserTopicContextMiddleware(BaseMiddleware):
             elif event.event.chat.type == ChatType.PRIVATE:
                 context.message_direction = MessageDirection.USER_TO_FORUM
             else:
-                await logger.adebug(
-                    event="Unknown message direction",
-                    update=event
-                )
+                logger.debug("Unknown message direction: %s", event.model_dump())
                 context.message_direction = MessageDirection.UNKNOWN
 
-            await logger.adebug(
-                event="User Topic Context created!"
-            )
+            logger.debug("User Topic Context created!")
             data.update(context=context)
 
             try:
-                msg_thread_id = event.evenet.message.reply_to_message.message_thread_id
-                await logger.adebug(
-                    event=f"Msg Thread ID: {msg_thread_id}"
-                )
+                msg_thread_id = event.event.message.reply_to_message.message_thread_id
+                logger.debug(f"Msg Thread ID: {msg_thread_id}")
             except AttributeError:
                 pass
 

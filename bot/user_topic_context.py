@@ -1,6 +1,6 @@
+import logging
 from enum import Enum, auto
 
-import structlog
 from aiogram import html, Bot
 from aiogram.enums import ContentType, ParseMode
 from aiogram.types import Message, User, ChatMemberMember
@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.db import Ban, Message as DBMessage, Topic
 
-logger: structlog.BoundLogger = structlog.get_logger()
+logger: logging.Logger = logging.getLogger(__name__)
 
 
 class MessageDirection(str, Enum):
@@ -37,7 +37,8 @@ class UserTopicContext:
             ContentType.NEW_CHAT_MEMBERS, ContentType.LEFT_CHAT_MEMBER,
             ContentType.NEW_CHAT_TITLE,
             ContentType.NEW_CHAT_PHOTO, ContentType.DELETE_CHAT_PHOTO,
-            ContentType.GROUP_CHAT_CREATED, ContentType.SUPERGROUP_CHAT_CREATED, ContentType.CHANNEL_CHAT_CREATED,
+            ContentType.GROUP_CHAT_CREATED, ContentType.SUPERGROUP_CHAT_CREATED,
+            ContentType.CHANNEL_CHAT_CREATED,
             ContentType.MESSAGE_AUTO_DELETE_TIMER_CHANGED,
             ContentType.MIGRATE_TO_CHAT_ID, ContentType.MIGRATE_FROM_CHAT_ID,
             ContentType.PINNED_MESSAGE,
@@ -55,8 +56,8 @@ class UserTopicContext:
         }
 
     async def get_ban_entry(
-            self,
-            user_id: int
+        self,
+        user_id: int
     ) -> Ban | None:
         statement = select(Ban).where(Ban.user_id == user_id)
         ban_entry = await self.session.scalar(statement)
@@ -64,10 +65,10 @@ class UserTopicContext:
         return ban_entry
 
     async def get_message_pair(
-            self,
-            is_from_bot: bool,
-            chat_id: int,
-            message_id: int
+        self,
+        is_from_bot: bool,
+        chat_id: int,
+        message_id: int
     ) -> DBMessage | None:
         """
         Search messages pair (sent by user <--> sent by bot)
@@ -96,8 +97,8 @@ class UserTopicContext:
         return await self.session.scalar(statement)
 
     async def add_messages_pairs(
-            self,
-            messages_data: list[dict],
+        self,
+        messages_data: list[dict],
     ):
         """
         Creates new messages connections entries in database
@@ -116,19 +117,20 @@ class UserTopicContext:
         try:
             await self.session.commit()
         except Exception as ex:
-            await logger.aerror(
-                event="Failed to write messages connections to DB",
-                exception_type=type(ex),
-                exception_text=str(ex),
-                messages_count=len(messages_data),
-                messages_data=messages_data
+            logger.error(
+                "Failed to write messages connections to DB, exception_type: %s, "
+                "exception_text: %s, messages_count: %s, messages_data: %s",
+                type(ex),
+                str(ex),
+                len(messages_data),
+                messages_data
             )
 
     async def ban_or_shadowban(
-            self,
-            existing_object: Ban | None,
-            user_id: int,
-            is_shadowban: bool = False
+        self,
+        existing_object: Ban | None,
+        user_id: int,
+        is_shadowban: bool = False
     ):
         # Choose attribute to update
         if is_shadowban:
@@ -155,37 +157,39 @@ class UserTopicContext:
             await self.session.commit()
             self.ban_entry = new_ban_entry
         except Exception as ex:
-            await logger.aerror(
-                event="Failed to (shadow)ban user",
-                ban_type=attr.replace("is_", "").replace("ned", ""),
-                user_id=user_id,
-                exception_type=type(ex),
-                exception_text=str(ex)
+            logger.error(
+                "Failed to (shadow)ban user, ban_type: %s, user_id: %s, "
+                "exception_type: %s, exception_text: %s",
+                attr.replace("is_", "").replace("ned", ""),
+                user_id,
+                type(ex),
+                str(ex)
             )
             raise ex
 
     async def unban(
-            self,
-            existing_object: Ban
+        self,
+        existing_object: Ban
     ):
         await self.session.delete(existing_object)
         try:
             await self.session.commit()
             self.ban_entry = None
         except Exception as ex:
-            await logger.aerror(
-                event="Failed to unban user",
-                user_id=existing_object.user_id,
-                exception_type=type(ex),
-                exception_text=str(ex)
+            logger.error(
+                "Failed to unban user. user_id: %s, exception_type: %s, "
+                "exception_text: %s",
+                existing_object.user_id,
+                type(ex),
+                str(ex)
             )
             raise ex
 
     @staticmethod
     def make_first_topic_message(
-            l10n: FluentLocalization,
-            user: User,
-            ban_entry: Ban | None = None
+        l10n: FluentLocalization,
+        user: User,
+        ban_entry: Ban | None = None
     ) -> str:
         # Objects for "no" and "yes" strings
         no = l10n.format_value("no", {"capitalization": "lowercase"})
@@ -219,10 +223,10 @@ class UserTopicContext:
         return text
 
     async def update_first_topic_message(
-            self,
-            bot: Bot,
-            l10n: FluentLocalization,
-            chat_id: int
+        self,
+        bot: Bot,
+        l10n: FluentLocalization,
+        chat_id: int
     ):
         user_chat: ChatMemberMember = await bot.get_chat_member(
             chat_id=self.topic_entry.user_id,

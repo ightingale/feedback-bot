@@ -2,16 +2,16 @@ from aiogram import Router, Bot
 from aiogram.types import Message
 
 from bot.album_helpers import make_new_album
-from bot.handlers.message_edits import any_edited_message
+from bot.handlers.message_edits import any_edited_message, any_message_reaction
 from bot.user_topic_context import UserTopicContext
 
 
 async def any_message(
-        message: Message,
-        bot: Bot,
-        context: UserTopicContext,
-        forum_chat_id: int,
-        album: list[Message] | None = None
+    message: Message,
+    bot: Bot,
+    context: UserTopicContext,
+    forum_chat_id: int,
+    album: list[Message] | None = None
 ):
     """
     Handler to any other message in PM with user
@@ -51,5 +51,6 @@ def get_router() -> Router:
     router = Router(name="free_talk_in_pm")
     router.message.register(any_message)
     router.edited_message.register(any_edited_message)
+    router.message_reaction.register(any_message_reaction)
 
     return router

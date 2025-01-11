@@ -1,6 +1,7 @@
-import structlog
-from aiogram import F, Router, Bot
+import logging
 from contextlib import suppress
+
+from aiogram import F, Router, Bot
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters import Command
 from aiogram.types import Message
@@ -9,25 +10,25 @@ from fluent.runtime import FluentLocalization
 from bot.db.models import Ban
 from bot.user_topic_context import UserTopicContext
 
-logger: structlog.BoundLogger = structlog.get_logger()
+logger: logging.Logger = logging.getLogger(__name__)
 
 
-async def cmd_note(message: Message):
+async def cmd_note(_: Message):
     """
     Handler to messages which start with "!note" command.
     Such messages should be ignored.
 
-    :param message: any message which text or caption starts with "!note"
+    :param _: any message which text or caption starts with "!note"
     """
     return
 
 
 async def cmd_ban(
-        message: Message,
-        l10n: FluentLocalization,
-        context: UserTopicContext,
-        bot: Bot,
-        forum_chat_id: int
+    message: Message,
+    l10n: FluentLocalization,
+    context: UserTopicContext,
+    bot: Bot,
+    forum_chat_id: int
 ):
     ban_entry: Ban | None = context.ban_entry
     if ban_entry is not None:
@@ -40,10 +41,9 @@ async def cmd_ban(
     try:
         await context.ban_or_shadowban(
             existing_object=ban_entry,
-            user_id=context.topic_entry.user_id,
-            is_shadowban=False
+            user_id=context.topic_entry.user_id
         )
-    except Exception:
+    except (Exception, ):
         await message.reply(l10n.format_value("any-ban-error"))
     else:
         await message.reply(l10n.format_value("banned-successfully"))
@@ -56,11 +56,11 @@ async def cmd_ban(
 
 
 async def cmd_shadowban(
-        message: Message,
-        l10n: FluentLocalization,
-        context: UserTopicContext,
-        bot: Bot,
-        forum_chat_id: int
+    message: Message,
+    l10n: FluentLocalization,
+    context: UserTopicContext,
+    bot: Bot,
+    forum_chat_id: int
 ):
     ban_entry: Ban | None = context.ban_entry
     if ban_entry is not None:
@@ -74,7 +74,7 @@ async def cmd_shadowban(
             user_id=context.topic_entry.user_id,
             is_shadowban=True
         )
-    except Exception:
+    except (Exception, ):
         await message.reply(l10n.format_value("any-ban-error"))
     else:
         await message.reply(l10n.format_value("shadowbanned-successfully"))
@@ -87,11 +87,11 @@ async def cmd_shadowban(
 
 
 async def cmd_unban(
-        message: Message,
-        l10n: FluentLocalization,
-        context: UserTopicContext,
-        bot: Bot,
-        forum_chat_id: int
+    message: Message,
+    l10n: FluentLocalization,
+    context: UserTopicContext,
+    bot: Bot,
+    forum_chat_id: int
 ):
     ban_entry: Ban | None = context.ban_entry
     if ban_entry is None:
@@ -99,7 +99,7 @@ async def cmd_unban(
         return
     try:
         await context.unban(ban_entry)
-    except Exception:
+    except (Exception, ):
         await message.reply(l10n.format_value("any-unban-error"))
     else:
         await message.reply(l10n.format_value("unbanned-successfully"))
@@ -112,11 +112,11 @@ async def cmd_unban(
 
 
 async def cmd_update(
-        message: Message,
-        l10n: FluentLocalization,
-        context: UserTopicContext,
-        bot: Bot,
-        forum_chat_id: int
+    message: Message,
+    l10n: FluentLocalization,
+    context: UserTopicContext,
+    bot: Bot,
+    forum_chat_id: int
 ):
     try:
         await context.update_first_topic_message(
