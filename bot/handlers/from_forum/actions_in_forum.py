@@ -23,6 +23,22 @@ async def cmd_note(_: Message):
     return
 
 
+async def cmd_info(
+    message: Message,
+    l10n: FluentLocalization,
+    context: UserTopicContext,
+):
+    user_info = await context.get_user_info(user_id=context.topic_entry.user_id)
+    await message.reply(
+        l10n.format_value(
+            "user-info",
+            {
+                "user_info": user_info
+            }
+        )
+    )
+
+
 async def cmd_ban(
     message: Message,
     l10n: FluentLocalization,
@@ -136,5 +152,6 @@ def get_router() -> Router:
     router.message.register(cmd_shadowban, F.text, Command("shadowban"))
     router.message.register(cmd_unban, F.text, Command("unban"))
     router.message.register(cmd_update, F.text, Command("update"))
+    router.message.register(cmd_info, F.text, Command("info"))
 
     return router

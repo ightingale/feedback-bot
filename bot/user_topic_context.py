@@ -241,5 +241,11 @@ class UserTopicContext:
             chat_id=chat_id,
             message_id=self.topic_entry.first_message_id,
             text=new_first_message_text,
-            parse_mode=ParseMode.HTML
         )
+
+    async def get_user_info(self, user_id: int) -> str:
+        """
+        Method to getting any user information: data from a third-party service, main bot database, etc.
+        :return: str
+        """
+        return str(user_id)

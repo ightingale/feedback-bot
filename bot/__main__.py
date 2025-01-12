@@ -2,6 +2,8 @@ import asyncio
 import logging
 
 from aiogram import Bot, Dispatcher
+from aiogram.client.default import DefaultBotProperties
+from aiogram.enums import ParseMode
 from aiogram.fsm.storage.memory import MemoryStorage, SimpleEventIsolation
 from aiogram.fsm.storage.redis import RedisStorage
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
@@ -30,7 +32,10 @@ async def main():
     # Loading localization for bot
     l10n = get_fluent_localization(config.bot.language)
 
-    bot = Bot(token=config.bot.token.get_secret_value())
+    bot = Bot(
+        token=config.bot.token.get_secret_value(),
+        default=DefaultBotProperties(parse_mode=ParseMode.HTML)
+    )
     dp = Dispatcher(
         forum_chat_id=config.bot.forum_supergroup_id,
         topics_to_ignore=config.bot.ignored_topics_ids,

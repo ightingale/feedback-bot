@@ -33,6 +33,11 @@ error-cannot-deliver-to-forum =
     Error: couldn't deliver your message. Please try again in several minutes.
 
 
+user-info =
+    <b>User info:</b>
+    { $user_info }
+
+
 banned-successfully = User banned successfully. From now on bot will reply to all their messages automatically with ban notification.
 shadowbanned-successfully = User shadowbanned successfully. From now on bot will ignore all their messages.
 

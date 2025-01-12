@@ -67,7 +67,6 @@ class TopicsManagementMiddleware(BaseMiddleware):
                 supergroup_id,
                 message_thread_id=new_topic.message_thread_id,
                 text=UserTopicContext.make_first_topic_message(l10n, message.from_user),
-                parse_mode=ParseMode.HTML
             )
         except TelegramBadRequest as ex:
             logger.error(
